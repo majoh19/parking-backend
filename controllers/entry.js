@@ -10,7 +10,8 @@ const createEntry = async (req = request, res = response) => {
             check('plateNumber', 'invalid.plateNumber').not().isEmpty().run(req),
             check('brand', 'invalid.brand').not().isEmpty().run(req),
             check('model', 'invalid.model').not().isEmpty().run(req),
-            check('exitDate', 'invalid.exitDate').not().isEmpty().run(req)
+            check('exitDate', 'invalid.exitDate').matches(/^\d{2}\/\d{2}\/\d{4}$/).run(req),
+            check('exitHour', 'invalid.exitHour').matches(/^\d{2}:\d{2}$/).run(req)
         ])
 
         const errors = validationResult(req)
@@ -28,7 +29,14 @@ const createEntry = async (req = request, res = response) => {
         entry.brand = req.body.brand
         entry.model = req.body.model
         entry.entryDate = new Date()
-        entry.exitDate = req.body.exitDate
+        entry.entryHour = new Date().toLocaleTimeString('eng-US', {
+            hour: '2-digit',
+            minute: '2-digit'
+        })
+        const [month, day, year] = req.body.exitDate.split('/')
+        const [hour, minute] = req.body.exitHour.split(':')
+        entry.exitDate = new Date(`${year}-${month}-${day}`)
+        entry.exitHour = `${hour}:${minute}`
 
         entry = await entry.save()
 
@@ -62,7 +70,19 @@ const editEntry = async (req = request, res = response) => {
         if (req.body.plateNumber) entry.plateNumber = req.body.plateNumber
         if (req.body.brand) entry.brand = req.body.brand
         if (req.body.model) entry.model = req.body.model
-        if (req.body.exitDate) entry.exitDate = req.body.exitDate
+        if (req.body.exitDate) {
+            if (!req.body.exitDate.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+                return res.status(400).send('Invalid exit date format. Use "mm/dd/yyyy"')
+            }
+            const [month, day, year] = req.body.exitDate.split('/')
+            entry.exitDate = new Date(`${year}-${month}-${day}`)
+        }
+        if (req.body.exitHour) {
+            if (!req.body.exitHour.match(/^\d{2}:\d{2}$/)) {
+                return res.status(400).send('Invalid exit hour format. Use "hh:mm"')
+            }
+            entry.exitHour = req.body.exitHour
+        }
         const updatedEntry = await entry.save()
         res.send(updatedEntry)
     } catch (error) {
