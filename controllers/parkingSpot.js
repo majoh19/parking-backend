@@ -21,6 +21,14 @@ const createParkingSpot = async (req = request, res = response) => {
         if (existParkingSpot) {
             return res.status(400).send('The spot already exists')
         }
+        const entry = await Entry.findOne({_id: req.body.entry})
+        if (!entry) {
+            return res.status(400).send('Invalid entry')
+        }
+        const exit = await Exit.findOne({_id: req.body.exit})
+        if (!exit) {
+            return res.status(400).send('Invalid exit')
+        }
         let parkingSpot = new ParkingSpot()
         parkingSpot.spotNumber = req.body.spotNumber
         parkingSpot.isOccupied = req.body.isOccupied
@@ -54,7 +62,7 @@ const editParkingSpot = async (req = request, res = response) => {
             return res.status(404).send('Parking spot not found')
         }
         if (req.body.spotNumber) parkingSpot.spotNumber = req.body.spotNumber
-        if (req.body.isOccupied !== undefined) parkingSpot.isOccupied = req.body.isOccupied
+        if (req.body.isOccupied) parkingSpot.isOccupied = req.body.isOccupied
         if (req.body.entry) parkingSpot.entry = req.body.entry
         if (req.body.exit) parkingSpot.exit = req.body.exit
         const updatedParkingSpot = await parkingSpot.save()

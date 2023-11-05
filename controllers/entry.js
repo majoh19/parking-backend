@@ -22,8 +22,8 @@ const createEntry = async (req = request, res = response) => {
         if (existEntry) {
             return res.status(400).send('The vehicle already exists')
         }
-        const existUser = await User.findOne({ _id: req.body.owner })
-        if (!existUser) {
+        const owner = await User.findOne({ _id: req.body.owner })
+        if (!owner) {
             return res.status(400).send('Invalid user')
         }
         let entry = new Entry()

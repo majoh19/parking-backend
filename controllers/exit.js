@@ -18,8 +18,8 @@ const createExit = async (req = request, res = response) => {
         if (!errors.isEmpty) {
             return res.status(400).json({message: errors.array()})
         }
-        const existUser = await User.findOne({ _id: req.body.owner })
-        if (!existUser) {
+        const owner = await User.findOne({ _id: req.body.owner })
+        if (!owner) {
             return res.status(400).send('Invalid user')
         }
         let exit = new Exit()
