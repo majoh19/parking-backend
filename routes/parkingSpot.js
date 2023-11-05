@@ -4,7 +4,7 @@ const router = Router()
 
 router.post('/', createParkingSpot)
 router.get('/', listParkingSpot)
-router.put('/:spotId', editParkingSpot)
-router.delete('/:spotId', deleteParkingSpot)
+router.put('/:parkingSpotId', editParkingSpot)
+router.delete('/:parkingSpotId', deleteParkingSpot)
 
 module.exports = router

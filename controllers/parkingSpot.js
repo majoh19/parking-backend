@@ -17,10 +17,6 @@ const createParkingSpot = async (req = request, res = response) => {
         if (!errors.isEmpty) {
             return res.status(400).json({message: errors.array()})
         }
-        const existParkingSpot = ParkingSpot.findOne({spotNumber: req.body.spotNumber})
-        if (existParkingSpot) {
-            return res.status(400).send('The spot already exists')
-        }
         const entry = await Entry.findOne({_id: req.body.entry})
         if (!entry) {
             return res.status(400).send('Invalid entry')

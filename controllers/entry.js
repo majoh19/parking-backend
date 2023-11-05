@@ -18,10 +18,6 @@ const createEntry = async (req = request, res = response) => {
         if (!errors.isEmpty) {
             return res.status(400).json({message: errors.array()})
         }
-        const existEntry = Entry.findOne({plateNumber: req.body.plateNumber})
-        if (existEntry) {
-            return res.status(400).send('The vehicle already exists')
-        }
         const owner = await User.findOne({ _id: req.body.owner })
         if (!owner) {
             return res.status(400).send('Invalid user')

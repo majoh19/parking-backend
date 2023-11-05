@@ -23,12 +23,12 @@ const createExit = async (req = request, res = response) => {
             return res.status(400).send('Invalid user')
         }
         let exit = new Exit()
-        entry.exitDate = new Date().toLocaleDateString('eng-US', {
+        exit.exitDate = new Date().toLocaleDateString('eng-US', {
             month: '2-digit',
             day: '2-digit',
             year: 'numeric'
         })
-        entry.exitHour = new Date().toLocaleTimeString('eng-US', {
+        exit.exitHour = new Date().toLocaleTimeString('eng-US', {
             hour: '2-digit',
             minute: '2-digit'
         })
