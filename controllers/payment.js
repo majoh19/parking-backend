@@ -1,36 +1,35 @@
 const Payment = require('../models/payment')
-const ParkingSpot = require('../models/parkingSpot')
+const Entry = require('../models/entry')
+const Exit = require('../models/exit')
 const {request, response} = require('express')
 const {validationResult, check} = require('express-validator')
 
 //Create
 const createPayment = async (req = request, res = response) => {
-    try {
-        
+    try {        
         await Promise.all([
-            check('amount', 'invalid.amount').not().isEmpty().run(req),
-            check('parkingSpot', 'invalid.parkingSpot').not().isEmpty().run(req),
+            check('entry', 'invalid.entry').not().isEmpty().run(req),
+            check('exit', 'invalid.exit').not().isEmpty().run(req),
+            check('totalAmount', 'invalid.totalAmount').not().isEmpty().run(req)
         ])
-
         const errors = validationResult(req)
         if (!errors.isEmpty) {
             return res.status(400).json({message: errors.array()})
         }
-
-        const parkingSpot = await ParkingSpot.finOne({_id: req.body.parkingSpot})
-        if (!parkingSpot) {
-            return res.status(400).send('Invalid spot')
-        } 
-
+        const entry = await Entry.findOne({_id: req.body.entry})
+        if (!entry) {
+            return res.status(400).send('Invalid entry')
+        }
+        const exit = await Exit.findOne({_id: req.body.exit})
+        if (!exit) {
+            return res.status(400).send('Invalid exit')
+        }
         let payment = new Payment()
-        payment.amount = req.body.amount
-        payment.paymentDate = new Date()
-        payment.parkingSpot = req.body.parkingSpot
-
+        payment.entry = req.body.entry
+        payment.exit = req.body.exit
+        payment.totalAmount = req.body.totalAmount
         payment = await payment.save()
-
         res.send(payment)
-
     } catch (error) {
         console.log(error)
         res.status(500).send('An error occured while creating the payment')
@@ -40,7 +39,7 @@ const createPayment = async (req = request, res = response) => {
 //List
 const listPayment = async (req = request, res = response) => {
     try {
-        const payments = await Payment.find()
+        const payments = await Payment.find().populate('entry').populate('exit')
         res.send(payments)
     } catch (error) {
         console.log(error)
@@ -56,8 +55,9 @@ const editPayment = async (req = request, res = response) => {
         if (!payment) {
             return res.status(404).send('Payment not found')
         }
-        if (req.body.amount) payment.amount = req.body.amount
-        if (req.body.parkingSpot) payment.parkingSpot = req.body.parkingSpot
+        if (req.body.entry) payment.entry = req.body.entry
+        if (req.body.exit) payment.exit = req.body.exit
+        if (req.body.totalAmount) payment.totalAmount = req.body.totalAmount
         const updatedPayment = await payment.save()
         res.send(updatedPayment)
     } catch (error) {

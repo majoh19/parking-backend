@@ -10,9 +10,13 @@ const ParkingSpotSchema = Schema({
         type: Boolean,
         default: false,
     },
-    user: {
+    entry: {
         type: Schema.Types.ObjectId,
-        ref: 'User',
+        ref: 'Entry',
+    },
+    exit: {
+        type: Schema.Types.ObjectId,
+        ref: 'Exit'
     }
 })
 

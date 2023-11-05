@@ -1,18 +1,18 @@
 const { Schema, model } = require('mongoose')
 
 const PaymentSchema = Schema({
-    amount: {
-        type: Number,
-        required: true,
-    },
-    paymentDate: {
-        type: Date,
-        default: new Date()
-    },
-    parkingSpot: {
+    entry: {
         type: Schema.Types.ObjectId,
-        ref: 'ParkingSpot',
+        ref: 'Entry'
     },
+    exit: {
+        type: Schema.Types.ObjectId,
+        ref: 'Exit'
+    },
+    totalAmount: {
+        type: Number,
+        required: true
+    }
 })
 
-module.exports = model('Payment', PaymentSchema);
+module.exports = model('Payment', PaymentSchema)

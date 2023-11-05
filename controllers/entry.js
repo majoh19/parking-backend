@@ -1,47 +1,47 @@
 const Entry = require('../models/entry')
+const User = require('../models/user')
 const {request, response} = require('express')
 const {validationResult, check} = require('express-validator')
 
 //Create
 const createEntry = async (req = request, res = response) => {
-    try {
-        
+    try {       
         await Promise.all([
+            check('entryDate', 'invalid.entryDate').matches(/^\d{2}\/\d{2}\/\d{4}$/).run(req),
+            check('entryHour', 'invalid.entryHour').matches(/^\d{2}:\d{2}$/).run(req),
             check('plateNumber', 'invalid.plateNumber').not().isEmpty().run(req),
             check('brand', 'invalid.brand').not().isEmpty().run(req),
             check('model', 'invalid.model').not().isEmpty().run(req),
-            check('exitDate', 'invalid.exitDate').matches(/^\d{2}\/\d{2}\/\d{4}$/).run(req),
-            check('exitHour', 'invalid.exitHour').matches(/^\d{2}:\d{2}$/).run(req)
+            check('owner', 'invalid.owner').not().isEmpty().run(req)
         ])
-
         const errors = validationResult(req)
         if (!errors.isEmpty) {
             return res.status(400).json({message: errors.array()})
         }
-
         const existEntry = Entry.findOne({plateNumber: req.body.plateNumber})
         if (existEntry) {
             return res.status(400).send('The vehicle already exists')
         }
-
+        const existUser = await User.findOne({ _id: req.body.owner })
+        if (!existUser) {
+            return res.status(400).send('Invalid user')
+        }
         let entry = new Entry()
-        entry.plateNumber = req.body.plateNumber
-        entry.brand = req.body.brand
-        entry.model = req.body.model
-        entry.entryDate = new Date()
+        entry.entryDate = new Date().toLocaleDateString('eng-US', {
+            month: '2-digit',
+            day: '2-digit',
+            year: 'numeric'
+        })
         entry.entryHour = new Date().toLocaleTimeString('eng-US', {
             hour: '2-digit',
             minute: '2-digit'
         })
-        const [month, day, year] = req.body.exitDate.split('/')
-        const [hour, minute] = req.body.exitHour.split(':')
-        entry.exitDate = new Date(`${year}-${month}-${day}`)
-        entry.exitHour = `${hour}:${minute}`
-
+        entry.plateNumber = req.body.plateNumber
+        entry.brand = req.body.brand
+        entry.model = req.body.model
+        entry.owner = req.body.owner
         entry = await entry.save()
-
         res.send(entry)
-
     } catch (error) {
         console.log(error)
         res.status(500).send('An error occured while creating the entry')
@@ -70,19 +70,6 @@ const editEntry = async (req = request, res = response) => {
         if (req.body.plateNumber) entry.plateNumber = req.body.plateNumber
         if (req.body.brand) entry.brand = req.body.brand
         if (req.body.model) entry.model = req.body.model
-        if (req.body.exitDate) {
-            if (!req.body.exitDate.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
-                return res.status(400).send('Invalid exit date format. Use "mm/dd/yyyy"')
-            }
-            const [month, day, year] = req.body.exitDate.split('/')
-            entry.exitDate = new Date(`${year}-${month}-${day}`)
-        }
-        if (req.body.exitHour) {
-            if (!req.body.exitHour.match(/^\d{2}:\d{2}$/)) {
-                return res.status(400).send('Invalid exit hour format. Use "hh:mm"')
-            }
-            entry.exitHour = req.body.exitHour
-        }
         const updatedEntry = await entry.save()
         res.send(updatedEntry)
     } catch (error) {
